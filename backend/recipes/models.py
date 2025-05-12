@@ -27,7 +27,8 @@ class Ingredient(models.Model):
     name = models.CharField(
         verbose_name='Название',
         max_length=256,
-        help_text='Уникальное название, не более 256 символов')
+        help_text='Уникальное название, не более 256 символов', 
+        unique=True)
     measurement_unit = models.CharField(
         verbose_name='Единица измерения',
         max_length=128,
