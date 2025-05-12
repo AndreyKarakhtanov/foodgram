@@ -29,11 +29,12 @@ class Ingredient(models.Model):
         max_length=256,
         help_text='Уникальное название, не более 256 символов',
         unique=True
-        )
+    )
     measurement_unit = models.CharField(
         verbose_name='Единица измерения',
         max_length=128,
-        help_text='Уникальное название, не более 128 символов')
+        help_text='Уникальное название, не более 128 символов'
+    )
 
     class Meta:
         verbose_name = 'объект "Ингредиент"'
