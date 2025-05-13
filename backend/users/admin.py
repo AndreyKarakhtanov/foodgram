@@ -26,7 +26,10 @@ class CustomUserAdmin(UserAdmin):
             return ('is_staff', 'is_superuser', 'groups', 'user_permissions',
                     'last_login', 'date_joined')
         if obj.is_superuser and request.user.is_staff:
-            return list(self.readonly_fields).append('is_active')
+            return ('username', 'email', 'first_name', 'last_name', 'password',
+                    'is_active', 'is_staff', 'is_superuser',
+                    'user_permissions', 'groups', 'last_login', 'date_joined',
+                    'avatar')
         return self.readonly_fields
 
 

@@ -4,11 +4,11 @@ from djoser.views import UserViewSet
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from users.models import Subscription
 
+from .pagination import CustomPagination
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (IngredientSerializer, RecipeDataSerializer,
                           RecipeSerializer, SubscriptionSerializer,
@@ -119,7 +119,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """Класс-вьюсет рецептов."""
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    pagination_class = LimitOffsetPagination
+    pagination_class = CustomPagination
     permission_classes = (IsAuthorOrReadOnly,)
     http_method_names = ('get', 'post', 'patch', 'delete')
 
@@ -135,10 +135,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
         if tags:
             queryset = queryset.filter(tags__slug__in=tags).distinct()
-        if is_favorited and not user.is_anonymous:
-            queryset = queryset.filter(favorites__user=user)
-        if is_in_shopping_cart and not user.is_anonymous:
-            queryset = queryset.filter(shopping_cart__user=user)
+        if not user.is_anonymous:
+            if is_favorited:
+                queryset = queryset.filter(favorites__user=user)
+            if is_in_shopping_cart:
+                queryset = queryset.filter(shopping_cart__user=user)
         return queryset
 
     def perform_create(self, serializer):
