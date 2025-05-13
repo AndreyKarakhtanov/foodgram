@@ -134,7 +134,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             self.request.query_params.get('is_in_shopping_cart') or 0
         )
         if tags:
-            queryset = queryset.filter(tags__slug__in=tags)
+            queryset = queryset.filter(tags__slug__in=tags).distinct()
         if is_favorited and not user.is_anonymous:
             queryset = queryset.filter(favorites__user=user)
         if is_in_shopping_cart and not user.is_anonymous:

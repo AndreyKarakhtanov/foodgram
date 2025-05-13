@@ -41,7 +41,7 @@ def to_pdf(ingredient_dict):
         width_center - (len(label) * title_size) // 4, u_i, label
     )
     size = 14
-    count = size * 2
+    count = title_size * 2
     pdf_file.setFont('DejaVuSerif', size)
     for i in data:
         string = f'{i[0]} ({i[1]}) - {i[2]}'
