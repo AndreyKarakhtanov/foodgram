@@ -151,13 +151,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return super(RecipeViewSet, self).get_serializer_class()
 
     def get_queryset(self):
+        user_id = 0
+        if not self.request.user.is_anonymous:
+            user_id = self.request.user.id
         is_favorited = Favorite.objects.filter(
             recipe=OuterRef('pk'),
-            user=self.request.user,
+            user_id=user_id,
         )
         in_shopping_cart = ShoppingCart.objects.filter(
             recipe=OuterRef('pk'),
-            user=self.request.user,
+            user_id=user_id,
         )
         queryset = Recipe.objects.all().annotate(
             is_favorited=Exists(is_favorited),
