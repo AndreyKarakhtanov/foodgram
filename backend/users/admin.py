@@ -1,14 +1,15 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.admin import UserAdmin as UserAdminBase
 
 from .models import Subscription, User
 
-UserAdmin.fieldsets += (
+UserAdminBase.fieldsets += (
     ('Extra Fields', {'fields': ('avatar',)}),
 )
 
 
-class CustomUserAdmin(UserAdmin):
+@admin.register(User)
+class UserAdmin(UserAdminBase):
     """Админка для кастомного пользователя."""
     readonly_fields = ('username', 'email', 'first_name', 'last_name',
                        'is_staff', 'is_superuser',
@@ -33,13 +34,10 @@ class CustomUserAdmin(UserAdmin):
         return self.readonly_fields
 
 
+@admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     """Админка для подписок."""
     list_display = (
         'user',
         'blogger',
     )
-
-
-admin.site.register(Subscription, SubscriptionAdmin)
-admin.site.register(User, CustomUserAdmin)

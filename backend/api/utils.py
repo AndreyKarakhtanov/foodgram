@@ -10,7 +10,6 @@ from reportlab.pdfgen import canvas
 
 def encode_to_string(integer, base=settings.SHORT_URL_BASE):
     """Кодировка положительного числа в строку."""
-    print(integer)
     if integer == 0:
         return base[0]
     length = len(base)
@@ -22,7 +21,7 @@ def encode_to_string(integer, base=settings.SHORT_URL_BASE):
     return string
 
 
-def to_pdf(ingredient_dict):
+def to_pdf(shopping_cart_list):
     """Создание pdf документа со списком игредиентов."""
     buffer = io.BytesIO()
     width, height = A4
@@ -35,7 +34,7 @@ def to_pdf(ingredient_dict):
     )
     title_size = 16
     pdf_file.setFont('DejaVuSerif', title_size)
-    data = list(ingredient_dict.values())
+    # data = list(ingredient_dict.values())
     label = 'Список покупок'
     pdf_file.drawString(
         width_center - (len(label) * title_size) // 4, u_i, label
@@ -43,10 +42,11 @@ def to_pdf(ingredient_dict):
     size = 14
     count = title_size * 2
     pdf_file.setFont('DejaVuSerif', size)
-    for i in data:
-        string = f'{i[0]} ({i[1]}) - {i[2]}'
+    for i in shopping_cart_list:
+        string = f'{i["name"]} ({i["measurement_unit"]}) - {i["total_amount"]}'
         if len(string) * size > r_i - l_i:
-            string = f'({i[1]}) {i[2]} - {i[0]}'
+            string = (f'({i["total_amount"]}) {i["measurement_unit"]} '
+                      '- {i["name"]}')
         pdf_file.drawString(
             l_i, u_i - count, string
         )

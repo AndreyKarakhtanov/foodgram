@@ -1,6 +1,6 @@
 from django.contrib import admin
+from django.db.models import Count
 
-from .forms import RecipeModelForm
 from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                      ShoppingCart, Tag)
 
@@ -10,6 +10,7 @@ class RecipeIngredientInline(admin.TabularInline):
     extra = 1
 
 
+@admin.register(RecipeIngredient)
 class RecipeIngredientAdmin(admin.ModelAdmin):
     """Админка для компонентов в рецептах."""
 
@@ -20,6 +21,7 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
     """Админка для избранного."""
 
@@ -29,6 +31,7 @@ class FavoriteAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     """Админка для ингредиентов."""
 
@@ -41,9 +44,9 @@ class IngredientAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     """Админка для рецептов."""
-    form = RecipeModelForm
     inlines = (RecipeIngredientInline,)
     search_fields = (
         'author__username',
@@ -54,8 +57,20 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'author',
+        'favorites_count'
     )
     readonly_fields = ('author',)
+
+    def get_queryset(self, request):
+        return super(RecipeAdmin, self).get_queryset(request).annotate(
+            favorites_count=Count('favorites', distinct=True)
+        )
+
+    def favorites_count(self, obj):
+        return obj.favorites_count
+
+    favorites_count.admin_order_field = 'favorites_count'
+    favorites_count.short_description = 'Общее число добавлений в избранное'
 
     def get_readonly_fields(self, request, obj=None):
         if request.user.is_superuser:
@@ -63,6 +78,7 @@ class RecipeAdmin(admin.ModelAdmin):
         return self.readonly_fields
 
 
+@admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
     """Админка для списка покупок."""
 
@@ -72,6 +88,7 @@ class ShoppingCartAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     """Админка для тэгов."""
 
@@ -79,11 +96,3 @@ class TagAdmin(admin.ModelAdmin):
         'name',
         'slug',
     )
-
-
-admin.site.register(RecipeIngredient, RecipeIngredientAdmin)
-admin.site.register(Favorite, FavoriteAdmin)
-admin.site.register(Ingredient, IngredientAdmin)
-admin.site.register(Recipe, RecipeAdmin)
-admin.site.register(ShoppingCart, ShoppingCartAdmin)
-admin.site.register(Tag, TagAdmin)
