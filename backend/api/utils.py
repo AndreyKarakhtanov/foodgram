@@ -34,7 +34,6 @@ def to_pdf(shopping_cart_list):
     )
     title_size = 16
     pdf_file.setFont('DejaVuSerif', title_size)
-    # data = list(ingredient_dict.values())
     label = 'Список покупок'
     pdf_file.drawString(
         width_center - (len(label) * title_size) // 4, u_i, label
@@ -42,11 +41,13 @@ def to_pdf(shopping_cart_list):
     size = 14
     count = title_size * 2
     pdf_file.setFont('DejaVuSerif', size)
-    for i in shopping_cart_list:
-        string = f'{i["name"]} ({i["measurement_unit"]}) - {i["total_amount"]}'
+    for ingredient in shopping_cart_list:
+        string = (f'{ingredient["name"]} ({ingredient["measurement_unit"]}) - '
+                  f'{ingredient["total_amount"]}')
         if len(string) * size > r_i - l_i:
-            string = (f'({i["total_amount"]}) {i["measurement_unit"]} '
-                      '- {i["name"]}')
+            string = (f'({ingredient["total_amount"]}) '
+                      f'{ingredient["measurement_unit"]} '
+                      f'- {ingredient["name"]}')
         pdf_file.drawString(
             l_i, u_i - count, string
         )

@@ -36,6 +36,7 @@ class IngredientAdmin(admin.ModelAdmin):
     """Админка для ингредиентов."""
 
     list_display = (
+        'id',
         'name',
         'measurement_unit',
     )
@@ -66,11 +67,12 @@ class RecipeAdmin(admin.ModelAdmin):
             favorites_count=Count('favorites', distinct=True)
         )
 
+    @admin.display(
+        ordering='favorites_count',
+        description='Общее число добавлений в избранное'
+    )
     def favorites_count(self, obj):
         return obj.favorites_count
-
-    favorites_count.admin_order_field = 'favorites_count'
-    favorites_count.short_description = 'Общее число добавлений в избранное'
 
     def get_readonly_fields(self, request, obj=None):
         if request.user.is_superuser:

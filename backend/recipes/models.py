@@ -41,9 +41,7 @@ class Ingredient(models.Model):
     name = models.CharField(
         verbose_name='Название',
         max_length=INGREDIENT_NAME_MAX_LENGTH,
-        help_text='Уникальное название, не более '
-        f'{INGREDIENT_NAME_MAX_LENGTH} символов.',
-        unique=True
+        help_text=('Название не более {INGREDIENT_NAME_MAX_LENGTH} символов.')
     )
     measurement_unit = models.CharField(
         verbose_name='Единица измерения',
@@ -60,7 +58,7 @@ class Ingredient(models.Model):
                 fields=('name', 'measurement_unit'),
                 name='unique_name_measurement_unit'),
         )
-        ordering = ['name']  # unique?
+        ordering = ['name', 'measurement_unit']
 
     def __str__(self):
         return f'{self.name} ({self.measurement_unit})'
@@ -109,9 +107,6 @@ class Recipe(models.Model):
     def __str__(self):
         return self.name
 
-    def favorites_count(self):
-        return 0
-
 
 class RecipeIngredient(models.Model):
     """Класс модели связи рецепт-ингредиент."""
@@ -133,9 +128,6 @@ class RecipeIngredient(models.Model):
         ]
     )
 
-    def __str__(self):
-        return f'{self.recipe} {self.ingredient} {self.amount}'
-
     class Meta:
         verbose_name = 'объект "Компонент рецепта"'
         verbose_name_plural = 'Рецепт-Ингредиент'
@@ -145,6 +137,9 @@ class RecipeIngredient(models.Model):
                 fields=('recipe', 'ingredient'), name='unique_composition'),
         )
         ordering = ('recipe', 'ingredient')
+
+    def __str__(self):
+        return f'{self.recipe} {self.ingredient} {self.amount}'
 
 
 class RecipeUser(models.Model):
@@ -163,23 +158,22 @@ class RecipeUser(models.Model):
 
 class Favorite(RecipeUser):
     """Класс модели избранное."""
-    def __str__(self):
-        return f'{self.recipe} в избранном у {self.user}'
 
     class Meta:
         verbose_name = 'объект "Избранный рецепт пользователя"'
         verbose_name_plural = 'Избранное'
-        default_related_name = 'favorites'
+        default_related_name = '%(model_name)ss'
         constraints = (
             models.UniqueConstraint(
                 fields=('recipe', 'user'), name='unique_favorite'),
         )
 
+    def __str__(self):
+        return f'{self.recipe} в избранном у {self.user}'
+
 
 class ShoppingCart(RecipeUser):
     """Класс модели список покупок."""
-    def __str__(self):
-        return f'{self.recipe} в списке покупок у {self.user}'
 
     class Meta:
         verbose_name = 'объект "Рецепт в списоке покупок пользователя"'
@@ -189,3 +183,6 @@ class ShoppingCart(RecipeUser):
             models.UniqueConstraint(
                 fields=('recipe', 'user'), name='unique_shopping_cart'),
         )
+
+    def __str__(self):
+        return f'{self.recipe} в списке покупок у {self.user}'

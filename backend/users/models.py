@@ -1,11 +1,14 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import F, Q
 from django.utils.translation import gettext_lazy as _
 
 
 class User(AbstractUser):
     """Класс модели кастомного пользователя."""
+    first_name = models.CharField(_('first name'), max_length=150, blank=True)
+    last_name = models.CharField(_('last name'), max_length=150, blank=True)
     email = models.EmailField(
         _('email address'),
         unique=True,
@@ -47,6 +50,10 @@ class Subscription(models.Model):
         verbose_name = 'объект "Подписка"'
         verbose_name_plural = 'Подписки'
         constraints = (
+            models.CheckConstraint(
+                check=~Q(blogger=F('user')),
+                name='refuse_self_subscription'
+            ),
             models.UniqueConstraint(
                 fields=('blogger', 'user'), name='unique_subscription'),
         )

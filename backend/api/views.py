@@ -3,13 +3,10 @@ from django.db.models import Exists, F, OuterRef, Sum
 from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as UserViewSetBase
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from users.models import Subscription
 
 from .filters import IngredientFilter, RecipeFilter
 from .pagination import LimitPagination
@@ -20,6 +17,9 @@ from .serializers import (IngredientSerializer, RecipeDataSerializer,
                           UserAvatarSerializer, UserRecipeSerializer,
                           UserSerializer)
 from .utils import encode_to_string, to_pdf
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
+from users.models import Subscription
 
 User = get_user_model()
 
@@ -99,11 +99,11 @@ class UserViewSet(UserViewSetBase):
     def delete_subscription(self, request, id=None):
         user = request.user
         blogger = self.get_object()
-        deleted_subscription = Subscription.objects.get(
+        del_amount, del_dict = Subscription.objects.filter(
             user=user,
             blogger=blogger
         ).delete()
-        if not deleted_subscription[0]:
+        if not del_amount:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -133,21 +133,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = LimitPagination
     permission_classes = (IsAuthorOrReadOnly,)
     http_method_names = ('get', 'post', 'patch', 'delete')
-    action_serializers = {
-        'retrieve': RecipeListSerializer,
-        'list': RecipeListSerializer,
-        'create': RecipeSerializer,
-        'patch': RecipeSerializer,
-    }
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        if hasattr(self, 'action_serializers'):
-            return self.action_serializers.get(
-                self.action, self.
-                serializer_class
-            )
+        if self.action in ('retrieve', 'list'):
+            return RecipeListSerializer
         return super(RecipeViewSet, self).get_serializer_class()
 
     def get_queryset(self):
@@ -213,16 +204,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def delete_user_recipe(self, model):
         user = self.request.user
         recipe = self.get_object()
-        deleted_user_recipe = model.objects.get(
+        del_amount, del_dict = model.objects.get(
             user=user,
             recipe=recipe
         ).delete()
-        try:
-            if not deleted_user_recipe[0]:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except Exception:
+        if not del_amount:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'],
             permission_classes=[IsAuthenticated])
