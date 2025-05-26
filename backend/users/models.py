@@ -4,11 +4,13 @@ from django.db import models
 from django.db.models import F, Q
 from django.utils.translation import gettext_lazy as _
 
+from .cosntants import MAX_FIRST_NAME, MAX_LAST_NAME
+
 
 class User(AbstractUser):
     """Класс модели кастомного пользователя."""
-    first_name = models.CharField(_('first name'), max_length=150, blank=True)
-    last_name = models.CharField(_('last name'), max_length=150, blank=True)
+    first_name = models.CharField(_('first name'), max_length=MAX_FIRST_NAME)
+    last_name = models.CharField(_('last name'), max_length=MAX_LAST_NAME)
     email = models.EmailField(
         _('email address'),
         unique=True,

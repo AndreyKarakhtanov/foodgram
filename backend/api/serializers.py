@@ -38,7 +38,7 @@ class UserSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         return (
             self.context.get('request')
-            and not self.context.get('request').user.is_anonymous
+            and self.context.get('request').user.is_authenticated
             and self.context.get('request').user.subscriptions.filter(
                 blogger=obj
             ).exists()
@@ -194,8 +194,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags', [])
         instance.tags.set(tags_data)
-        recipe = Recipe.objects.get(id=instance.id)
-        recipe.ingredients.clear()
+        instance.ingredients.clear()
         RecipeIngredient.objects.bulk_create(
             self.get_recipe_ingredients(instance, ingredients_data)
         )
