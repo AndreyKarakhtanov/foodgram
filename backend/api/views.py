@@ -76,24 +76,27 @@ class UserViewSet(UserViewSetBase):
         user = request.user
         blogger = self.get_object()
         if request.method == 'POST':
-            try:
-                if user == blogger:
-                    raise Exception
-                subscription, created = Subscription.objects.get_or_create(
-                    user=user,
-                    blogger=blogger
-                )
-                if not created:
-                    raise Exception
+            if user == blogger:
                 return Response(
-                    UserRecipeSerializer(
-                        self.get_object(),
-                        context={'request': request}
-                    ).data,
-                    status=status.HTTP_201_CREATED
+                    {'blogger': 'Попытка подписки на себя отклонена.'},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
-            except Exception:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+            subscription, created = Subscription.objects.get_or_create(
+                user=user,
+                blogger=blogger
+            )
+            if not created:
+                return Response(
+                    {'subscription': 'Пользователь уже был подписан.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            return Response(
+                UserRecipeSerializer(
+                    self.get_object(),
+                    context={'request': request}
+                ).data,
+                status=status.HTTP_201_CREATED
+            )
 
     @subscribe.mapping.delete
     def delete_subscription(self, request, id=None):
@@ -104,7 +107,10 @@ class UserViewSet(UserViewSetBase):
             blogger=blogger
         ).delete()
         if not del_amount:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'subscription': 'Данной подписки не существует.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -195,7 +201,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe=recipe
         )
         if not created:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'adding erorr': 'Уже добавлено.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         return Response(
             RecipeDataSerializer(recipe).data,
             status=status.HTTP_201_CREATED
@@ -209,7 +218,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe=recipe
         ).delete()
         if not del_amount:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'deletion error': 'Данной связи не существует.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'],

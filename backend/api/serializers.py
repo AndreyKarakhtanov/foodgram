@@ -109,7 +109,9 @@ class IngredientSerializer(serializers.ModelSerializer):
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор ингредиента в рецепте."""
 
-    id = serializers.ReadOnlyField(source='ingredient.id')
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all()
+    )
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit'
@@ -118,9 +120,6 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeIngredient
         fields = ('id', 'name', 'measurement_unit', 'amount')
-
-    def to_internal_value(self, data):
-        return data
 
 
 class RecipeListSerializer(serializers.ModelSerializer):
@@ -132,8 +131,8 @@ class RecipeListSerializer(serializers.ModelSerializer):
         source='recipe_ingredients',
         many=True
     )
-    is_favorited = serializers.IntegerField(default=False)
-    is_in_shopping_cart = serializers.IntegerField(default=False)
+    is_favorited = serializers.BooleanField(default=False)
+    is_in_shopping_cart = serializers.BooleanField(default=False)
 
     class Meta:
         model = Recipe
@@ -169,7 +168,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             recipe_ingredients.append(
                 RecipeIngredient(
                     recipe=recipe,
-                    ingredient_id=ingredient.get('id'),
+                    ingredient=ingredient.get('id'),
                     amount=ingredient.get('amount')
                 )
             )
@@ -192,6 +191,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients')
+        # raise Exception(ingredients_data)
         tags_data = validated_data.pop('tags', [])
         instance.tags.set(tags_data)
         instance.ingredients.clear()
